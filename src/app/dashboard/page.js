@@ -1,14 +1,22 @@
-'use client'
-import React, { useState } from "react"
-import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff"
-import { useRouter } from "next/navigation"
+"use client"
+import React, { useState, useEffect } from "react"
+import { signOut } from "next-auth/react"
 import { z } from "zod"
-import Itinerary from "@/components/Itinerary"
+import ForestIcon from "@mui/icons-material/Forest"
+import  FlightTakeoff  from "@mui/icons-material/FlightTakeoff"
+import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"
+import FlightIcon from "@mui/icons-material/Flight"
+import TrainIcon from "@mui/icons-material/Train"
+import DirectionsBusIcon from "@mui/icons-material/DirectionsBus"
+import EventIcon from "@mui/icons-material/Event"
+import PlaceIcon from "@mui/icons-material/Place"
+import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
 
-const FormData = () => {
+const TripPlannerPage = () => {
   const [error, setError] = useState(null)
   const [loading, setLoading] = useState(false)
   const [itineraryData, setItineraryData] = useState(null)
+  const [formSubmitted, setFormSubmitted] = useState(false)
   const [newRequest, setNewRequest] = useState({
     destination: "",
     budget: "",
@@ -16,37 +24,67 @@ const FormData = () => {
     endDate: "",
     noOfPeople: "",
     purpose: "",
-    modeOfTravel: "Road", // Default value
+    modeOfTravel: "road",
     yourLocation: "",
   })
-  const router = useRouter()
 
   const InputSchema = z.object({
-    destination: z.string().min(1, { message: "Destination is required" }),
-    budget: z.string().min(1, { message: "Budget is required" }),
-    startDate: z.string().min(1, { message: "Start date is required" }),
-    endDate: z.string().min(1, { message: "End date is required" }),
-    noOfPeople: z.string().min(1, { message: "No of people is required" }),
-    purpose: z.string().min(1, { message: "Purpose is required" }),
-    modeOfTravel: z.string().min(1, { message: "Mode of travel is required" }),
-    yourLocation: z.string().min(1, { message: "Your location is required" }),
+    destination: z.string().min(1, "Destination is required"),
+    budget: z.string().min(1, "Budget is required"),
+    startDate: z.string().min(1, "Start date is required"),
+    endDate: z.string().min(1, "End date is required"),
+    noOfPeople: z.string().min(1, "Number of people is required"),
+    purpose: z.string().min(1, "Purpose is required"),
+    modeOfTravel: z.string().min(1, "Mode of travel is required"),
+    yourLocation: z.string().min(1, "Your location is required"),
   })
+
+  const formatCurrency = (amount, currency = "INR") => {
+    return new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: currency,
+    }).format(amount)
+  }
+
+  const getTransportIcon = (mode) => {
+    switch (mode.toLowerCase()) {
+      case "car":
+        return <DirectionsCarIcon className="text-orange-600" />
+      case "flight":
+        return <FlightIcon className="text-orange-600" />
+      case "train":
+        return <TrainIcon className="text-orange-600" />
+      case "bus":
+        return <DirectionsBusIcon className="text-orange-600" />
+      default:
+        return <DirectionsCarIcon className="text-orange-600" />
+    }
+  }
+
+  const formatDate = (dateString) => {
+    const options = {
+      weekday: "long",
+      year: "numeric",
+      month: "long",
+      day: "numeric",
+    }
+    return new Date(dateString).toLocaleDateString("en-US", options)
+  }
+
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setNewRequest((prev) => ({
       ...prev,
       [name]: value,
     }))
+    setError(null)
   }
 
-  const handleNewRequest = async (e) => {
+  const generateItinerary = async () => {
     setLoading(true)
-    e.preventDefault()
     try {
       InputSchema.parse(newRequest)
-      setError(null)
 
-      // Constructing API URL with form data
       const apiUrl = `https://march-cohort-kr64.onrender.com/itinerary/?destination=${encodeURIComponent(
         newRequest.destination
       )}&start_date=${encodeURIComponent(
@@ -63,260 +101,383 @@ const FormData = () => {
         newRequest.yourLocation
       )}&mode_of_transport=${encodeURIComponent(newRequest.modeOfTravel)}`
 
-      const res = await fetch(apiUrl, {
-        method: "GET",
-      })
-
+      const res = await fetch(apiUrl)
       const data = await res.json()
 
-      if (!res.ok) {
-        throw new Error(data.message || "Failed to fetch itinerary.")
-      }
-      setLoading(false)
+      if (!res.ok) throw new Error(data.message || "Failed to fetch itinerary")
 
-      console.log("Itinerary Data:", data)
-      setItineraryData(data) // Set the itinerary data to state
-      // You can update the state with `data` to display results in the UI
-    } catch (e) {
-      if (e.errors) {
-        setError(e.errors)
-      } else {
-        console.log(e)
-      }
+      setItineraryData(data)
+      setFormSubmitted(true)
+    } catch (err) {
+      setError(err.errors ? err.errors[0].message : err.message)
+    } finally {
+      setLoading(false)
     }
   }
 
-  
-  <Itinerary itineraryData={itineraryData} />
+  const handleSubmit = (e) => {
+    e.preventDefault()
+    generateItinerary()
+  }
+
+  const handleReset = () => {
+    setFormSubmitted(false)
+  }
+
+  if (formSubmitted && itineraryData) {
+    console.log(itineraryData)
+    return (
+      <div className="min-h-screen bg-orange-50 flex flex-col items-center p-6 md:p-10 text-black">
+        <div className="flex items-center justify-center mb-6">
+          <ForestIcon className="text-orange-600 text-4xl mr-2" />
+          <h1 className="text-3xl font-bold text-orange-800">
+            Your Travel Itinerary
+          </h1>
+        </div>
+
+        <button
+          onClick={() => signOut()}
+          className="px-6 py-2 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all absolute right-4 top-4"
+        >
+          Log out
+        </button>
+
+        {/* Trip Summary Card */}
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b pb-2">
+            Trip Summary
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center">
+              <PlaceIcon className="text-orange-600 mr-2" />
+              <div>
+                <p className="text-gray-600 text-sm">From</p>
+                <p className="font-semibold">
+                  {itineraryData.trip_summary.from}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <PlaceIcon className="text-orange-600 mr-2" />
+              <div>
+                <p className="text-gray-600 text-sm">To</p>
+                <p className="font-semibold">{itineraryData.trip_summary.to}</p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <EventIcon className="text-orange-600 mr-2" />
+              <div>
+                <p className="text-gray-600 text-sm">Travel Dates</p>
+                <p className="font-semibold">
+                  {formatDate(itineraryData.trip_summary.travel_dates[0])} to{" "}
+                  {formatDate(itineraryData.trip_summary.travel_dates[1])}
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center">
+              <AccountBalanceWalletIcon className="text-orange-600 mr-2" />
+              <div>
+                <p className="text-gray-600 text-sm">Total Budget</p>
+                <p className="font-semibold">
+                  {formatCurrency(
+                    itineraryData.trip_summary.total_budget,
+                    itineraryData.trip_summary.currency
+                  )}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Transport Options Card */}
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b pb-2">
+            Transport Options
+          </h2>
+          <div className="mb-4">
+            <p className="font-medium mb-2">
+              Selected:{" "}
+              <span className="font-bold capitalize">
+                {itineraryData.transport.selected}
+              </span>
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {itineraryData.transport.options.map((option, index) => (
+              <div
+                key={index}
+                className={`border p-4 rounded-xl ${
+                  option.mode === itineraryData.transport.selected
+                    ? "border-orange-500 bg-orange-50"
+                    : "border-gray-200"
+                }`}
+              >
+                <div className="flex items-center mb-2">
+                  {getTransportIcon(option.mode)}
+                  <p className="ml-2 font-semibold capitalize">{option.mode}</p>
+                </div>
+                <p className="text-gray-700">
+                  Cost: {formatCurrency(option.cost)}
+                </p>
+                <p className="text-gray-700">Duration: {option.duration}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Budget Breakdown Card */}
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b pb-2">
+            Budget Breakdown
+          </h2>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {Object.entries(itineraryData.budget).map(
+              ([category, amount], index) => (
+                <div key={index} className="flex flex-col">
+                  <p className="text-gray-600 capitalize">{category}</p>
+                  <p className="text-xl font-semibold">
+                    {formatCurrency(amount)}
+                  </p>
+                  <div className="mt-2 bg-gray-200 rounded-full h-2 overflow-hidden">
+                    <div
+                      className="bg-orange-600 h-full"
+                      style={{
+                        width: `${
+                          (amount / itineraryData.trip_summary.total_budget) *
+                          100
+                        }%`,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+        </div>
+
+        {/* Day-by-Day Itinerary Card */}
+        <div className="w-full max-w-4xl bg-white rounded-2xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-orange-800 mb-4 border-b pb-2">
+            Day-by-Day Itinerary
+          </h2>
+
+          <div className="space-y-6">
+            {itineraryData.itinerary.map((day, index) => (
+              <div
+                key={index}
+                className="border-l-4 border-orange-500 pl-4 py-2"
+              >
+                <h3 className="text-xl font-bold text-orange-700">
+                  Day {day.day} - {formatDate(day.date)}
+                </h3>
+                <p className="text-gray-600 mb-2 mt-1">
+                  Transport:{" "}
+                  <span className="capitalize">{day.transport_used}</span>
+                </p>
+                <ul className="space-y-2 mt-4">
+                  {day.activities.map((activity, actIndex) => (
+                    <li key={actIndex} className="flex items-start">
+                      <span className="inline-block w-2 h-2 bg-orange-500 rounded-full mt-2 mr-2"></span>
+                      <span>{activity}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="w-full max-w-4xl flex justify-center gap-4 mb-8">
+          <button
+            onClick={handleReset}
+            className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
+          >
+            Generate New Itinerary
+          </button>
+          <button
+            onClick={() => window.print()}
+            className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
+          >
+            Print Itinerary
+          </button>
+        </div>
+      </div>
+    )
+  }
 
   return (
-    <div className="min-h-screen bg-orange-50 flex flex-col items-center p-20 text-black">
-      <FlightTakeoffIcon />
+    <div className="min-h-screen bg-orange-50 flex flex-col items-center text-black p-4">
+      <div className="w-full max-w-6xl flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold text-orange-700">Om Tours</h1>
+        <button
+          onClick={() => signOut()}
+          className="px-6 py-2 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 transition-colors"
+        >
+          Log out
+        </button>
+      </div>
 
-      <button
-        onClick={() => signOut()}
-        className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all absolute right-10 top-10"
-      >
-        Log out
-      </button>
-      <div className="mt-8 flex justify-center"></div>
-      <h1 className="text-2xl font-bold">
-        {" "}
-        Please fill in the details to get started!
-      </h1>
-      <p className="text-xl font-semibold mt-2"></p>
-      <form onSubmit={handleNewRequest} className="w-full max-w-4xl">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-5">
-          <div>
-            {/*Destination*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Destination<span className="text-red-500">*</span>
+      <div className="w-full rounded-xl p-6 flex flex-col justify-center items-center ">
+        <h2 className="text-xl font-semibold mb-4">Plan Your Trip</h2>
+
+        {error && (
+          <div className="max-w-4xl items-center justify-center flex mb-6 p-3 bg-red-100 border border-red-400 text-red-700 rounded-lg text-sm">
+            <strong>Error:</strong> {error}
+          </div>
+        )}
+
+        <form onSubmit={handleSubmit} className="w-full max-w-5xl flex flex-col justify-center items-center"> 
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+            <div className="flex flex-col">
+              <label
+                className="font-medium text-gray-700"
+                htmlFor="destination"
+              >
+                Destination
               </label>
               <input
                 type="text"
+                id="destination"
                 name="destination"
                 value={newRequest.destination}
                 onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                placeholder="Enter a destination"
-                required
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-              {error && error.some((e) => e.path[0] === "destination") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "destination")?.message}
-                </p>
-              )}
             </div>
 
-            {/*Budget*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Budget<span className="text-red-500">*</span>
+            <div className="flex flex-col">
+              <label
+                className="font-medium text-gray-700"
+                htmlFor="yourLocation"
+              >
+                Your Location
               </label>
               <input
                 type="text"
-                name="budget"
-                value={newRequest.budget}
-                onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                placeholder="Enter your budget"
-                required
-              />
-              {error && error.some((e) => e.path[0] === "budget") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "budget")?.message}
-                </p>
-              )}
-            </div>
-
-            {/*Start Date*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Start Date<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="startDate"
-                value={newRequest.startDate}
-                onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                required
-              />
-              {error && error.some((e) => e.path[0] === "startDate") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "startDate")?.message}
-                </p>
-              )}
-            </div>
-
-            {/*End Date*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                End Date<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="date"
-                name="endDate"
-                value={newRequest.endDate}
-                onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                required
-              />
-              {error && error.some((e) => e.path[0] === "endDate") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "endDate")?.message}
-                </p>
-              )}
-            </div>
-
-            {/*Your Location*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Your Location<span className="text-red-500">*</span>
-              </label>
-              <input
-                type="text"
+                id="yourLocation"
                 name="yourLocation"
                 value={newRequest.yourLocation}
                 onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                placeholder="Enter your current location"
-                required
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
-              {error && error.some((e) => e.path[0] === "yourLocation") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "yourLocation")?.message}
-                </p>
-              )}
             </div>
-          </div>
 
-          <div>
-            {/*Mode of travel*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Mode of Travel<span className="text-red-500">*</span>
+            <div className="flex flex-col">
+              <label className="font-medium text-gray-700" htmlFor="startDate">
+                Start Date (DD-MM-YYYY)
               </label>
-              <div className="flex flex-col space-y-2">
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="modeOfTravel"
-                    value="Road"
-                    checked={newRequest.modeOfTravel === "Road"}
-                    onChange={handleInputChange}
-                    className="form-radio h-5 w-5 text-orange-600"
-                  />
-                  <span className="ml-2">Road</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="modeOfTravel"
-                    value="Train"
-                    checked={newRequest.modeOfTravel === "Train"}
-                    onChange={handleInputChange}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />
-                  <span className="ml-2">Train</span>
-                </label>
-                <label className="inline-flex items-center">
-                  <input
-                    type="radio"
-                    name="modeOfTravel"
-                    value="Flight"
-                    checked={newRequest.modeOfTravel === "Flight"}
-                    onChange={handleInputChange}
-                    className="form-radio h-5 w-5 text-blue-600"
-                  />
-                  <span className="ml-2">Flight</span>
-                </label>
-              </div>
-              {error && error.some((e) => e.path[0] === "modeOfTravel") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "modeOfTravel")?.message}
-                </p>
-              )}
+              <input
+                type="date"
+                id="startDate"
+                name="startDate"
+                value={newRequest.startDate}
+                onChange={handleInputChange}
+                placeholder="DD-MM-YYYY"
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
             </div>
 
-            {/*No of people*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Number of People<span className="text-red-500">*</span>
+            <div className="flex flex-col">
+              <label className="font-medium text-gray-700" htmlFor="endDate">
+                End Date (DD-MM-YYYY)
+              </label>
+              <input
+                type="date"
+                id="endDate"
+                name="endDate"
+                value={newRequest.endDate}
+                onChange={handleInputChange}
+                placeholder="DD-MM-YYYY"
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="font-medium text-gray-700" htmlFor="budget">
+                Budget (₹)
+              </label>
+              <input
+                type="text"
+                id="budget"
+                name="budget"
+                value={newRequest.budget}
+                onChange={handleInputChange}
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label className="font-medium text-gray-700" htmlFor="noOfPeople">
+                Number of People
               </label>
               <input
                 type="number"
+                id="noOfPeople"
                 name="noOfPeople"
                 value={newRequest.noOfPeople}
                 onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
                 min="1"
-                placeholder="Enter number of people"
-                required
               />
-              {error && error.some((e) => e.path[0] === "noOfPeople") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "noOfPeople")?.message}
-                </p>
-              )}
             </div>
 
-            {/*Purpose*/}
-            <div className="mt-4">
-              <label className="block text-gray-700 font-semibold mb-2">
-                Purpose<span className="text-red-500">*</span>
+            <div className="flex flex-col md:col-span-2">
+              <label className="font-medium text-gray-700" htmlFor="purpose">
+                Purpose of Trip
               </label>
               <textarea
+                id="purpose"
                 name="purpose"
+                rows="3"
                 value={newRequest.purpose}
                 onChange={handleInputChange}
-                className="w-full p-3.5 border border-gray-300 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all placeholder-gray-400"
-                rows="8"
-                placeholder="Describe the purpose of your trip"
-                required
-              ></textarea>
-              {error && error.some((e) => e.path[0] === "purpose") && (
-                <p className="text-red-500 text-sm mt-1">
-                  {error.find((e) => e.path[0] === "purpose")?.message}
-                </p>
-              )}
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+                placeholder="Describe the purpose of your trip..."
+              />
+            </div>
+
+            <div className="flex flex-col md:col-span-2">
+              <label className="font-medium text-gray-700">
+                Mode of Travel
+              </label>
+              <div className="flex space-x-6 mt-2">
+                {["car", "train", "flight"].map((mode) => (
+                  <label key={mode} className="inline-flex items-center">
+                    <input
+                      type="radio"
+                      name="modeOfTravel"
+                      value={mode}
+                      checked={newRequest.modeOfTravel === mode}
+                      onChange={handleInputChange}
+                      className="h-5 w-5 text-orange-600 focus:ring-orange-500"
+                    />
+                    <span className="ml-2 capitalize">{mode}</span>
+                  </label>
+                ))}
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className="mt-8 flex justify-center">
-          <button
-            type="submit"
-            className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
-          >
-            {loading && <p className="text-blue-500 font-semibold">Loading...</p>}
-            {!loading && <p className="text-white font-semibold">Get Itinerary</p>}
-          </button>
-        </div>
-      </form>
+          <div className="mt-8 flex justify-center">
+            <button
+              type="submit"
+              className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+            >
+              {loading ? "Generating..." : "Generate Itinerary"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   )
 }
 
-export default FormData
+export default TripPlannerPage
