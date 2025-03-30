@@ -14,7 +14,7 @@ export async function middleware(request) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  // Redirect unauthenticated users away from protected routes 
+  // Redirect unauthenticated users away from protected routes
   if (!token && url.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/sign-in", request.url))
   }

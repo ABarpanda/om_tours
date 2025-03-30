@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react"
-import ForestIcon from "@mui/icons-material/Forest"
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
@@ -9,12 +9,7 @@ const Navbar = () => {
 
   useEffect(() => {
     const handleScroll = () => {
-      const sections = [
-        "home",
-        "about",
-        "process",
-        "contact",
-      ]
+      const sections = ["home", "about", "process", "contact"]
 
       // Check if scrolled for navbar background
       setScrolled(window.scrollY > 50)
@@ -64,7 +59,7 @@ const Navbar = () => {
             whileHover={{ scale: 1.05 }}
             className="bg-orange-600 text-white rounded-full p-2 shadow-md"
           >
-            <ForestIcon />
+            <FlightTakeoffIcon />
           </motion.div>
         </Link>
       </div>
@@ -96,7 +91,7 @@ const Navbar = () => {
         <Link href={"/docs"}>
           <button className="text-black hover:cursor-pointer hover:text-{}">
             Docs
-          </button>        
+          </button>
         </Link>
       </nav>
 

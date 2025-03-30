@@ -2,7 +2,7 @@
 import { motion } from "framer-motion"
 import GitHubIcon from "@mui/icons-material/GitHub"
 import LinkedInIcon from "@mui/icons-material/LinkedIn"
-import ForestIcon from "@mui/icons-material/Forest"
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff"
 import EmailIcon from "@mui/icons-material/Email"
 
 const Footer = () => {
@@ -20,9 +20,8 @@ const Footer = () => {
               whileInView={{ opacity: 1 }}
               viewport={{ once: true }}
             >
-              <ForestIcon
-                style={{ color: "#22c55e", fontSize: 28 }}
-                className="mr-2"
+              <FlightTakeoffIcon
+                className="mr-2 text-orange-600"
               />
               <span className="text-xl font-bold text-gray-800">
                 PeopleFirst
