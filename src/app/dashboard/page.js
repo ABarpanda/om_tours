@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation"
 import React, { useState } from "react"
 import { z } from "zod"
 import ForestIcon from "@mui/icons-material/Forest"
+import TravelRoute from "../../components/TravelRoute"
 
 const Page = () => {
   const [error, setError] = useState(null)
