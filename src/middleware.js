@@ -14,7 +14,7 @@ export async function middleware(request) {
     return NextResponse.redirect(new URL("/dashboard", request.url))
   }
 
-  // Redirect unauthenticated users away from protected routes
+  // Redirect unauthenticated users away from protected routes 
   if (!token && url.pathname.startsWith("/dashboard")) {
     return NextResponse.redirect(new URL("/sign-in", request.url))
   }
@@ -24,6 +24,5 @@ export async function middleware(request) {
 
 // Define which routes the middleware should run on
 export const config = {
-  matcher: ["/", "/sign-in", "/sign-up"],
-  //                                   , "/dashboard/:path*"
+  matcher: ["/", "/sign-in", "/sign-up", "/dashboard/:path*"],
 }

@@ -1,7 +1,9 @@
 "use client"
+import { signOut } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import React, { useEffect, useState } from "react"
+import React, { useState } from "react"
 import { z } from "zod"
+import ForestIcon from "@mui/icons-material/Forest"
 
 const Page = () => {
   const [error, setError] = useState(null)
@@ -59,6 +61,16 @@ const Page = () => {
 
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col items-center p-20 text-black">
+        <ForestIcon/>
+        
+        <button
+          onClick={() => signOut()}
+          className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all absolute right-10 top-10"
+        >
+          Log out
+        </button>
+      <div className="mt-8 flex justify-center">
+      </div>
       <h1 className="text-2xl font-bold"> Please fill in the details to get started!</h1>
       <p className="text-xl font-semibold mt-2">
        

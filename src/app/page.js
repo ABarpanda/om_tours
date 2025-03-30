@@ -2,7 +2,7 @@
 import Navbar from "../components/Navbar"
 import Footer from "../components/Footer"
 import Process from "../components/Process"
-import Contact from "../components/contact"
+import Contact from "../components/Contact"
 import Link from "next/link"
 import { motion } from "framer-motion"
 
