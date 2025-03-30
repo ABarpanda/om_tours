@@ -1,12 +1,14 @@
-"use client"
-import { signOut } from "next-auth/react"
-import { useRouter } from "next/navigation"
+'use client'
 import React, { useState } from "react"
+import FlightTakeoffIcon from "@mui/icons-material/FlightTakeoff"
+import { useRouter } from "next/navigation"
 import { z } from "zod"
-import ForestIcon from "@mui/icons-material/Forest"
+import Itinerary from "@/components/Itinerary"
 
-const Page = () => {
+const FormData = () => {
   const [error, setError] = useState(null)
+  const [loading, setLoading] = useState(false)
+  const [itineraryData, setItineraryData] = useState(null)
   const [newRequest, setNewRequest] = useState({
     destination: "",
     budget: "",
@@ -14,7 +16,7 @@ const Page = () => {
     endDate: "",
     noOfPeople: "",
     purpose: "",
-    modeOfTravel: "car", // Default value
+    modeOfTravel: "Road", // Default value
     yourLocation: "",
   })
   const router = useRouter()
@@ -29,7 +31,6 @@ const Page = () => {
     modeOfTravel: z.string().min(1, { message: "Mode of travel is required" }),
     yourLocation: z.string().min(1, { message: "Your location is required" }),
   })
-
   const handleInputChange = (e) => {
     const { name, value } = e.target
     setNewRequest((prev) => ({
@@ -39,17 +40,43 @@ const Page = () => {
   }
 
   const handleNewRequest = async (e) => {
+    setLoading(true)
     e.preventDefault()
     try {
       InputSchema.parse(newRequest)
       setError(null)
 
-      const res = await fetch("/api/newRequest", {
-        method: "POST",
-        body: JSON.stringify({ newRequest }),
+      // Constructing API URL with form data
+      const apiUrl = `https://march-cohort-kr64.onrender.com/itinerary/?destination=${encodeURIComponent(
+        newRequest.destination
+      )}&start_date=${encodeURIComponent(
+        newRequest.startDate
+      )}&end_date=${encodeURIComponent(
+        newRequest.endDate
+      )}&number_of_people=${encodeURIComponent(
+        newRequest.noOfPeople
+      )}&purpose=${encodeURIComponent(
+        newRequest.purpose
+      )}&budget=${encodeURIComponent(
+        newRequest.budget
+      )}&location=${encodeURIComponent(
+        newRequest.yourLocation
+      )}&mode_of_transport=${encodeURIComponent(newRequest.modeOfTravel)}`
+
+      const res = await fetch(apiUrl, {
+        method: "GET",
       })
 
       const data = await res.json()
+
+      if (!res.ok) {
+        throw new Error(data.message || "Failed to fetch itinerary.")
+      }
+      setLoading(false)
+
+      console.log("Itinerary Data:", data)
+      setItineraryData(data) // Set the itinerary data to state
+      // You can update the state with `data` to display results in the UI
     } catch (e) {
       if (e.errors) {
         setError(e.errors)
@@ -59,22 +86,25 @@ const Page = () => {
     }
   }
 
+  
+  <Itinerary itineraryData={itineraryData} />
+
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col items-center p-20 text-black">
-        <ForestIcon/>
-        
-        <button
-          onClick={() => signOut()}
-          className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all absolute right-10 top-10"
-        >
-          Log out
-        </button>
-      <div className="mt-8 flex justify-center">
-      </div>
-      <h1 className="text-2xl font-bold"> Please fill in the details to get started!</h1>
-      <p className="text-xl font-semibold mt-2">
-       
-      </p>
+      <FlightTakeoffIcon />
+
+      <button
+        onClick={() => signOut()}
+        className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all absolute right-10 top-10"
+      >
+        Log out
+      </button>
+      <div className="mt-8 flex justify-center"></div>
+      <h1 className="text-2xl font-bold">
+        {" "}
+        Please fill in the details to get started!
+      </h1>
+      <p className="text-xl font-semibold mt-2"></p>
       <form onSubmit={handleNewRequest} className="w-full max-w-4xl">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mt-5">
           <div>
@@ -193,19 +223,19 @@ const Page = () => {
                   <input
                     type="radio"
                     name="modeOfTravel"
-                    value="car"
-                    checked={newRequest.modeOfTravel === "car"}
+                    value="Road"
+                    checked={newRequest.modeOfTravel === "Road"}
                     onChange={handleInputChange}
-                    className="form-radio h-5 w-5 text-blue-600"
+                    className="form-radio h-5 w-5 text-orange-600"
                   />
-                  <span className="ml-2">Car</span>
+                  <span className="ml-2">Road</span>
                 </label>
                 <label className="inline-flex items-center">
                   <input
                     type="radio"
                     name="modeOfTravel"
-                    value="train"
-                    checked={newRequest.modeOfTravel === "train"}
+                    value="Train"
+                    checked={newRequest.modeOfTravel === "Train"}
                     onChange={handleInputChange}
                     className="form-radio h-5 w-5 text-blue-600"
                   />
@@ -215,8 +245,8 @@ const Page = () => {
                   <input
                     type="radio"
                     name="modeOfTravel"
-                    value="flight"
-                    checked={newRequest.modeOfTravel === "flight"}
+                    value="Flight"
+                    checked={newRequest.modeOfTravel === "Flight"}
                     onChange={handleInputChange}
                     className="form-radio h-5 w-5 text-blue-600"
                   />
@@ -280,7 +310,8 @@ const Page = () => {
             type="submit"
             className="px-8 py-3 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 focus:outline-none focus:ring-2 focus:ring-orange-500 focus:ring-opacity-50 transition-all"
           >
-            Submit Request
+            {loading && <p className="text-blue-500 font-semibold">Loading...</p>}
+            {!loading && <p className="text-white font-semibold">Get Itinerary</p>}
           </button>
         </div>
       </form>
@@ -288,4 +319,4 @@ const Page = () => {
   )
 }
 
-export default Page
+export default FormData
