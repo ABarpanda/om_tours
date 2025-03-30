@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react"
 import { signOut } from "next-auth/react"
 import { z } from "zod"
 import ForestIcon from "@mui/icons-material/Forest"
-import  FlightTakeoff  from "@mui/icons-material/FlightTakeoff"
+import FlightTakeoff from "@mui/icons-material/FlightTakeoff"
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"
 import FlightIcon from "@mui/icons-material/Flight"
 import TrainIcon from "@mui/icons-material/Train"
@@ -11,6 +11,7 @@ import DirectionsBusIcon from "@mui/icons-material/DirectionsBus"
 import EventIcon from "@mui/icons-material/Event"
 import PlaceIcon from "@mui/icons-material/Place"
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
+import Link from "next/link"
 
 const TripPlannerPage = () => {
   const [error, setError] = useState(null)
@@ -315,7 +316,11 @@ const TripPlannerPage = () => {
   return (
     <div className="min-h-screen bg-orange-50 flex flex-col items-center text-black p-4">
       <div className="w-full max-w-6xl flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold text-orange-700">Om Tours</h1>
+        <Link href="/">
+          <h1 className="text-3xl font-bold text-orange-600 cursor-pointer hover:text-orange-700 transition-colors">
+            Om Tours
+          </h1>
+        </Link>
         <button
           onClick={() => signOut()}
           className="px-6 py-2 bg-orange-600 text-white font-medium rounded-xl shadow-md hover:bg-orange-700 transition-colors"
@@ -333,7 +338,10 @@ const TripPlannerPage = () => {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="w-full max-w-5xl flex flex-col justify-center items-center"> 
+        <form
+          onSubmit={handleSubmit}
+          className="w-full max-w-5xl flex flex-col justify-center items-center"
+        >
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
             <div className="flex flex-col">
               <label
