@@ -3,12 +3,9 @@ import React, { useState, useEffect } from "react"
 import { signOut } from "next-auth/react"
 import { z } from "zod"
 import ForestIcon from "@mui/icons-material/Forest"
-import TravelRoute from "../../components/TravelRoute"
-import FlightTakeoff from "@mui/icons-material/FlightTakeoff"
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"
 import FlightIcon from "@mui/icons-material/Flight"
 import TrainIcon from "@mui/icons-material/Train"
-import DirectionsBusIcon from "@mui/icons-material/DirectionsBus"
 import EventIcon from "@mui/icons-material/Event"
 import PlaceIcon from "@mui/icons-material/Place"
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
@@ -56,8 +53,6 @@ const TripPlannerPage = () => {
         return <FlightIcon className="text-orange-600" />
       case "train":
         return <TrainIcon className="text-orange-600" />
-      case "bus":
-        return <DirectionsBusIcon className="text-orange-600" />
       default:
         return <DirectionsCarIcon className="text-orange-600" />
     }
@@ -105,11 +100,14 @@ const TripPlannerPage = () => {
 
       const res = await fetch(apiUrl)
       const data = await res.json()
+      // console.log(JSON.stringify(data, null, 2));
 
       if (!res.ok) throw new Error(data.message || "Failed to fetch itinerary")
+      console.log(data, null, 2)
 
       setItineraryData(data)
       setFormSubmitted(true)
+      console.log(data)
     } catch (err) {
       setError(err.errors ? err.errors[0].message : err.message)
     } finally {
@@ -127,7 +125,6 @@ const TripPlannerPage = () => {
   }
 
   if (formSubmitted && itineraryData) {
-    console.log(itineraryData)
     return (
       <div className="min-h-screen bg-orange-50 flex flex-col items-center p-6 md:p-10 text-black">
         <div className="flex items-center justify-center mb-6">
