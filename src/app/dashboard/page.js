@@ -3,9 +3,7 @@ import React, { useState, useEffect } from "react"
 import { signOut } from "next-auth/react"
 import { z } from "zod"
 import ForestIcon from "@mui/icons-material/Forest"
-<<<<<<< HEAD
 import TravelRoute from "../../components/TravelRoute"
-=======
 import FlightTakeoff from "@mui/icons-material/FlightTakeoff"
 import DirectionsCarIcon from "@mui/icons-material/DirectionsCar"
 import FlightIcon from "@mui/icons-material/Flight"
@@ -15,7 +13,6 @@ import EventIcon from "@mui/icons-material/Event"
 import PlaceIcon from "@mui/icons-material/Place"
 import AccountBalanceWalletIcon from "@mui/icons-material/AccountBalanceWallet"
 import Link from "next/link"
->>>>>>> a59f94648d509ecf496cbc97eab8da146c4c4b70
 
 const TripPlannerPage = () => {
   const [error, setError] = useState(null)
