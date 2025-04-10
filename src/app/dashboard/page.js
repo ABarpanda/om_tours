@@ -344,23 +344,6 @@ const TripPlannerPage = () => {
             <div className="flex flex-col">
               <label
                 className="font-medium text-gray-700"
-                htmlFor="destination"
-              >
-                Destination
-              </label>
-              <input
-                type="text"
-                id="destination"
-                name="destination"
-                value={newRequest.destination}
-                onChange={handleInputChange}
-                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label
-                className="font-medium text-gray-700"
                 htmlFor="yourLocation"
               >
                 Your Location
@@ -370,6 +353,23 @@ const TripPlannerPage = () => {
                 id="yourLocation"
                 name="yourLocation"
                 value={newRequest.yourLocation}
+                onChange={handleInputChange}
+                className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
+              />
+            </div>
+
+            <div className="flex flex-col">
+              <label
+                className="font-medium text-gray-700"
+                htmlFor="destination"
+              >
+                Destination
+              </label>
+              <input
+                type="text"
+                id="destination"
+                name="destination"
+                value={newRequest.destination}
                 onChange={handleInputChange}
                 className="mt-1 px-4 py-2 border rounded-lg shadow-sm focus:ring-2 focus:ring-orange-500 focus:border-orange-500"
               />
